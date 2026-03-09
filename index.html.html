@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LEON — Matéria Prima · 09 Mar 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0b0e14;
+  --surface: #111520;
+  --border: #1e2433;
+  --dark: #060810;
+  --accent: #3b82f6;
+  --ok: #10b981;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --ok-bg: rgba(16,185,129,0.12);
+  --warn-bg: rgba(245,158,11,0.12);
+  --danger-bg: rgba(239,68,68,0.12);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Barlow',sans-serif; font-size:13px; }
+
+header {
+  background:var(--dark); padding:18px 36px;
+  display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid var(--border);
+}
+.h-left { display:flex; align-items:center; gap:14px; }
+.h-mark {
+  width:40px; height:40px; background:var(--accent); border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Space Mono',monospace; font-weight:700; color:#fff; font-size:15px;
+}
+.h-title { font-family:'Barlow',sans-serif; font-weight:800; font-size:20px; color:var(--text); letter-spacing:-.3px; }
+.h-sub { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:2px; margin-top:2px; }
+.h-right { text-align:right; }
+.h-date { font-family:'Space Mono',monospace; font-size:10px; color:var(--accent); letter-spacing:1px; }
+.h-desc { font-size:11px; color:var(--muted); margin-top:3px; }
+
+.wrap { padding:28px 36px; display:flex; flex-direction:column; gap:24px; }
+
+.sec-title {
+  font-family:'Space Mono',monospace; font-size:9px; letter-spacing:3px;
+  text-transform:uppercase; color:var(--muted); margin-bottom:14px;
+  display:flex; align-items:center; gap:10px;
+}
+.sec-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.g4 { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+.g-5-3 { display:grid; grid-template-columns:5fr 3fr; gap:14px; }
+
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:12px; padding:20px;
+  box-shadow:0 2px 12px rgba(0,0,0,.3);
+}
+.card-title { font-weight:700; font-size:13px; margin-bottom:16px; color:var(--text); display:flex; align-items:center; gap:8px; }
+
+.kpi { border-radius:12px; padding:18px 20px; border:1px solid var(--border); background:var(--surface); }
+.kpi-label { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); }
+.kpi-val { font-family:'Barlow',sans-serif; font-weight:800; font-size:30px; line-height:1.1; margin:6px 0 4px; }
+.kpi-sub { font-size:11px; color:var(--muted); }
+.kpi-ok    { border-top:3px solid var(--ok); }
+.kpi-warn  { border-top:3px solid var(--warn); }
+.kpi-danger{ border-top:3px solid var(--danger); }
+.kpi-blue  { border-top:3px solid var(--accent); }
+
+.badge {
+  display:inline-flex; align-items:center; gap:4px;
+  font-family:'Space Mono',monospace; font-size:9px;
+  padding:3px 8px; border-radius:20px; letter-spacing:.5px; font-weight:700;
+}
+.b-ok     { background:var(--ok-bg);    color:var(--ok); }
+.b-warn   { background:var(--warn-bg);  color:var(--warn); }
+.b-danger { background:var(--danger-bg);color:var(--danger); }
+.b-blue   { background:rgba(59,130,246,0.12); color:var(--accent); }
+
+table { width:100%; border-collapse:collapse; }
+th {
+  font-family:'Space Mono',monospace; font-size:9px; letter-spacing:1.5px;
+  text-transform:uppercase; color:var(--muted); padding:0 10px 10px;
+  text-align:left; border-bottom:2px solid var(--border);
+}
+th.r, td.r { text-align:right; }
+td { padding:9px 10px; border-bottom:1px solid #1a2030; font-size:12px; vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(255,255,255,.03); }
+
+.gbar { display:flex; align-items:center; gap:8px; }
+.gbar-bg { flex:1; height:6px; background:#1e2433; border-radius:3px; overflow:hidden; }
+.gbar-fill { height:100%; border-radius:3px; }
+.gbar-val { font-family:'Space Mono',monospace; font-size:10px; min-width:28px; text-align:right; font-weight:700; }
+
+.teto-row { margin-bottom:12px; }
+.teto-header { display:flex; justify-content:space-between; margin-bottom:5px; align-items:center; }
+.teto-name { font-size:11px; font-weight:600; color:var(--text); }
+.teto-val { font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); }
+.teto-bg { height:8px; background:#1e2433; border-radius:4px; overflow:hidden; }
+.teto-fill { height:100%; border-radius:4px; }
+
+.form-item {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:7px 10px; border-radius:8px; margin-bottom:6px;
+  background:rgba(255,255,255,.03); border:1px solid var(--border);
+}
+.form-mp { font-size:11px; font-weight:500; }
+.form-pct { font-family:'Space Mono',monospace; font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; }
+
+.forn-group { margin-bottom:14px; }
+.forn-mp { font-weight:700; font-size:12px; margin-bottom:6px; color:var(--text); }
+.forn-row { display:flex; justify-content:space-between; align-items:center; padding:4px 8px; border-radius:6px; background:rgba(255,255,255,.03); margin-bottom:3px; }
+.forn-name { font-size:11px; color:var(--muted); }
+.forn-kg { font-family:'Space Mono',monospace; font-size:11px; font-weight:700; }
+
+footer {
+  padding:16px 36px; border-top:1px solid var(--border); background:var(--dark);
+  display:flex; justify-content:space-between;
+}
+footer span { font-family:'Space Mono',monospace; font-size:9px; color:var(--muted); letter-spacing:2px; }
+
+@keyframes up { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.wrap > * { animation:up .35s ease both; }
+.wrap>*:nth-child(1){animation-delay:.04s}.wrap>*:nth-child(2){animation-delay:.08s}
+.wrap>*:nth-child(3){animation-delay:.12s}.wrap>*:nth-child(4){animation-delay:.16s}
+.wrap>*:nth-child(5){animation-delay:.20s}.wrap>*:nth-child(6){animation-delay:.24s}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-left">
+    <div class="h-mark">L</div>
+    <div>
+      <div class="h-title">LEON — Matéria Prima</div>
+      <div class="h-sub">Painel de Indicadores · Março 2026</div>
+    </div>
+  </div>
+  <div class="h-right">
+    <div class="h-date">09 DE MARÇO · 2026</div>
+    <div class="h-desc">Extrusão C1 + C2 · Controle Diário</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- KPIs -->
+  <div>
+    <div class="sec-title">Resumo do Estoque</div>
+    <div class="g4">
+      <div class="kpi kpi-blue">
+        <div class="kpi-label">Estoque Total MP</div>
+        <div class="kpi-val" style="color:var(--accent)">63.737</div>
+        <div class="kpi-sub">kg em estoque atual</div>
+      </div>
+      <div class="kpi kpi-warn">
+        <div class="kpi-label">Consumo Diário</div>
+        <div class="kpi-val" style="color:var(--warn)">10.041</div>
+        <div class="kpi-sub">kg/dia · C1 (37%) + C2 (63%)</div>
+      </div>
+      <div class="kpi kpi-danger">
+        <div class="kpi-label">Materiais Críticos</div>
+        <div class="kpi-val" style="color:var(--danger)">4</div>
+        <div class="kpi-sub">Col. B.D · Pigm. Preto · Polinylon Col. · Grão Apara</div>
+      </div>
+      <div class="kpi kpi-warn">
+        <div class="kpi-label">Materiais em Alerta</div>
+        <div class="kpi-val" style="color:var(--warn)">1</div>
+        <div class="kpi-sub">Pigmento Verde (7d)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabela + Teto -->
+  <div class="g-5-3">
+    <div class="card">
+      <div class="card-title">📊 Indicadores por Material</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Material</th>
+            <th class="r">Estoque (kg)</th>
+            <th class="r">Cons./dia (kg)</th>
+            <th class="r">%</th>
+            <th style="min-width:140px">Giro</th>
+            <th>Ruptura</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-main"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">🏭 Teto de Produção por Material (kg)</div>
+      <div id="teto-list"></div>
+    </div>
+  </div>
+
+  <!-- Formulações + Fornecedores -->
+  <div class="g3">
+    <div class="card">
+      <div class="card-title">⚙️ Formulação C1 — 3.692 kg/dia</div>
+      <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <span class="badge b-blue">TOTAL: 100%</span>
+        <span class="badge b-blue">3.692 kg/dia</span>
+      </div>
+      <div id="form-c1"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚙️ Formulação C2 — 6.349 kg/dia</div>
+      <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <span class="badge b-blue">TOTAL: 100%</span>
+        <span class="badge b-blue">6.349 kg/dia</span>
+      </div>
+      <div id="form-c2"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📦 Estoque por Fornecedor</div>
+      <div id="forn-list" style="max-height:320px;overflow-y:auto"></div>
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Consumo C1 × C2 por Material (kg/dia)</div>
+      <div style="height:240px"><canvas id="chartC1C2"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Distribuição % Média de Consumo por Material</div>
+      <div style="height:240px"><canvas id="chartPct"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Termômetro -->
+  <div class="card">
+    <div class="card-title">🌡️ Termômetro de Risco — Giro de Estoque vs Horizonte de 30 dias</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px">
+      Cada barra representa os dias de giro dentro de um horizonte de <strong>30 dias</strong>. Barra colorida = dias cobertos. Barra cinza = dias descobertos. Vermelho ≤3d · Laranja ≤7d · Verde &gt;7d.
+    </div>
+    <div style="height:280px"><canvas id="chartTermometro"></canvas></div>
+  </div>
+
+</div>
+
+<footer>
+  <span>LEON · ASSISTENTE PCP</span>
+  <span>09 MAR 2026 · DADOS VALIDADOS</span>
+  <span>1 FARDO = 25 KG</span>
+</footer>
+
+<script>
+const C1_DIA = 3692, C2_DIA = 6349, TOTAL_DIA = C1_DIA + C2_DIA;
+const HORIZONTE = 30;
+
+const c1 = [
+  {mp:"AGLUTINADO",               pct:19.0, cons:701,  color:"#6366f1"},
+  {mp:"GRÃO DE APARA COLORIDO",   pct:20.0, cons:738,  color:"#10b981"},
+  {mp:"POLINYLON COLORIDO",       pct:10.0, cons:369,  color:"#f59e0b"},
+  {mp:"CARBONATO CRISTAL MASTER", pct:15.0, cons:554,  color:"#3b82f6"},
+  {mp:"DESSECANTE CRISTAL MASTER",pct:4.0,  cons:148,  color:"#8b5cf6"},
+  {mp:"PIGMENTO PRETO",           pct:2.0,  cons:74,   color:"#94a3b8"},
+  {mp:"COLORIDO BAIXA DENSIDADE", pct:30.0, cons:1108, color:"#ef4444"},
+];
+const c2 = [
+  {mp:"AGLUTINADO",               pct:30.0, cons:1905, color:"#6366f1"},
+  {mp:"COLORIDO BAIXA DENSIDADE", pct:30.0, cons:1905, color:"#ef4444"},
+  {mp:"POLINYLON COLORIDO",       pct:5.0,  cons:317,  color:"#f59e0b"},
+  {mp:"CARBONATO CRISTAL MASTER", pct:20.0, cons:1270, color:"#3b82f6"},
+  {mp:"DESSECANTE CRISTAL MASTER",pct:3.0,  cons:190,  color:"#8b5cf6"},
+  {mp:"PIGMENTO VERDE",           pct:2.0,  cons:127,  color:"#10b981"},
+  {mp:"GRÃO DE APARA COLORIDO",   pct:10.0, cons:635,  color:"#10b981"},
+];
+
+const estoque = {
+  "CARBONATO CRISTAL MASTER":25000,"DESSECANTE CRISTAL MASTER":3325,
+  "PIGMENTO VERDE":997,"PIGMENTO BRANCO":2636,"PIGMENTO AMARELO":847,
+  "PIGMENTO PRETO":19,"GRÃO DE APARA COLORIDO":3927,
+  "PRETO BAIXA DENSIDADE":260,"CANELA BAIXA DENSIDADE":13932,
+  "COLORIDO BAIXA DENSIDADE":1276,"POLINYLON CRISTAL":2421,
+  "POLINYLON LEITOSO":2975,"POLINYLON CANELA":0,
+  "POLINYLON COLORIDO":1005,"AGLUTINADO":999999,
+};
+
+// Consumo consolidado
+const consumoMap = {};
+[...c1,...c2].forEach(d => consumoMap[d.mp] = (consumoMap[d.mp]||0) + d.cons);
+
+const painel = Object.entries(consumoMap).map(([mp, cons]) => {
+  const est = estoque[mp] || 0;
+  const giro = mp === 'AGLUTINADO' ? 999 : (cons > 0 ? Math.floor(est/cons) : 999);
+  const status = giro === 999 ? 'OK' : giro <= 3 ? 'CRÍTICO' : giro <= 7 ? 'ALERTA' : 'OK';
+  const dias = ['07-mar','08-mar','09-mar','10-mar','11-mar','12-mar','13-mar','14-mar','15-mar','16-mar',
+                '17-mar','18-mar','19-mar','20-mar','21-mar','22-mar','23-mar','24-mar','25-mar'];
+  const ruptura = mp === 'AGLUTINADO' ? '—' : (giro < dias.length ? dias[giro] : '—');
+  const pct = parseFloat(((cons/TOTAL_DIA)*100).toFixed(1));
+  const teto = (cons > 0 && mp !== 'AGLUTINADO') ? Math.floor(est/(cons/TOTAL_DIA)) : 0;
+  return {mp, est, cons, pct, giro, ruptura, status, teto};
+}).sort((a,b) => a.giro - b.giro);
+
+function gcol(g) { return g<=3?'var(--danger)':g<=7?'var(--warn)':'var(--ok)'; }
+function badgeCls(s) { return s==='CRÍTICO'?'b-danger':s==='ALERTA'?'b-warn':'b-ok'; }
+
+// ── TABELA ──
+const tbody = document.getElementById('tbody-main');
+painel.forEach(d => {
+  const gMax = 20, gFill = Math.min(d.giro/gMax,1)*100;
+  const gLabel = d.giro === 999 ? '∞' : d.giro+'d';
+  const ruptStyle = d.giro<=3?`color:var(--danger);font-weight:700`:d.giro<=7?`color:var(--warn);font-weight:600`:'';
+  tbody.innerHTML += `
+    <tr>
+      <td style="font-weight:600">${d.mp}</td>
+      <td class="r" style="font-family:'Space Mono',monospace">${d.est===999999?'∞':d.est.toLocaleString('pt-BR')}</td>
+      <td class="r" style="font-family:'Space Mono',monospace">${d.cons.toLocaleString('pt-BR')}</td>
+      <td class="r" style="font-family:'Space Mono',monospace">${d.pct}%</td>
+      <td><div class="gbar">
+        <div class="gbar-bg"><div class="gbar-fill" style="width:${gFill}%;background:${gcol(d.giro)}"></div></div>
+        <div class="gbar-val" style="color:${gcol(d.giro)}">${gLabel}</div>
+      </div></td>
+      <td style="font-family:'Space Mono',monospace;font-size:11px;${ruptStyle}">${d.ruptura}</td>
+      <td><span class="badge ${badgeCls(d.status)}">${d.status}</span></td>
+    </tr>`;
+});
+
+// ── TETO ──
+const tetoList = document.getElementById('teto-list');
+const maxTeto = Math.max(...painel.filter(d=>d.teto>0).map(d=>d.teto));
+painel.filter(d=>d.teto>0).sort((a,b)=>b.teto-a.teto).forEach(d => {
+  const pct = (d.teto/maxTeto)*100;
+  tetoList.innerHTML += `
+    <div class="teto-row">
+      <div class="teto-header">
+        <span class="teto-name">${d.mp.replace(' CRISTAL MASTER',' C.M.').replace(' BAIXA DENSIDADE',' B.D.')}</span>
+        <span class="teto-val">${d.teto.toLocaleString('pt-BR')} kg</span>
+      </div>
+      <div class="teto-bg"><div class="teto-fill" style="width:${pct}%;background:${gcol(d.giro)}"></div></div>
+    </div>`;
+});
+
+// ── FORMULAÇÕES ──
+function renderForm(data, elId) {
+  const el = document.getElementById(elId);
+  data.forEach(d => {
+    el.innerHTML += `
+      <div class="form-item">
+        <span class="form-mp">${d.mp}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--muted)">${d.cons.toLocaleString('pt-BR')} kg/dia</span>
+          <span class="form-pct" style="background:${d.color}18;color:${d.color}">${d.pct}%</span>
+        </div>
+      </div>`;
+  });
+}
+renderForm(c1,'form-c1'); renderForm(c2,'form-c2');
+
+// ── FORNECEDORES ──
+const fornecedores = [
+  {mp:"CARBONATO CRISTAL MASTER", total:25000, forns:[["Estoque",25000]]},
+  {mp:"CARBONATO SECMIL",         total:2416,  forns:[["Estoque",2416]]},
+  {mp:"DESSECANTE CRISTAL MASTER",total:3325,  forns:[["Estoque",3325]]},
+  {mp:"DESSECANTE SECMIL",        total:2704,  forns:[["Estoque",2704]]},
+  {mp:"GRÃO DE APARA COLORIDO",   total:3927,  forns:[["Ecolog",3927]]},
+  {mp:"PRETO BAIXA DENSIDADE",    total:260,   forns:[["Ecolog",260]]},
+  {mp:"CANELA BAIXA DENSIDADE",   total:13932, forns:[["Cedro",4849],["Redeplast",974],["Tupaciguara",8110]]},
+  {mp:"COLORIDO BAIXA DENSIDADE", total:1276,  forns:[["Piquiri",1276]]},
+  {mp:"POLINYLON CRISTAL",        total:2421,  forns:[["Ycaro",2421]]},
+  {mp:"POLINYLON LEITOSO",        total:2975,  forns:[["Valgroup",0],["Ecolog",2975]]},
+  {mp:"POLINYLON CANELA",         total:0,     forns:[["Ycaro",0]]},
+  {mp:"POLINYLON COLORIDO",       total:1005,  forns:[["Ycaro",1005]]},
+];
+const fornList = document.getElementById('forn-list');
+fornecedores.forEach(f => {
+  const zero = f.total === 0;
+  fornList.innerHTML += `
+    <div class="forn-group">
+      <div class="forn-mp" style="${zero?'color:var(--danger)':''}">${f.mp}${zero?' <span class="badge b-danger">ZERADO</span>':''}</div>
+      ${f.forns.map(([n,v])=>`<div class="forn-row"><span class="forn-name">${n}</span><span class="forn-kg" style="${v===0?'color:var(--danger)':''}">${v.toLocaleString('pt-BR')} kg</span></div>`).join('')}
+    </div>`;
+});
+
+// ── CHART C1 x C2 ──
+const allMps = [...new Set([...c1,...c2].map(d=>d.mp))];
+const c1Map = Object.fromEntries(c1.map(d=>[d.mp,d.cons]));
+const c2Map = Object.fromEntries(c2.map(d=>[d.mp,d.cons]));
+const mpsSort = allMps.sort((a,b)=>(c1Map[b]||0)+(c2Map[b]||0)-(c1Map[a]||0)-(c2Map[a]||0));
+const shortLbl = s => s.replace(' CRISTAL MASTER',' C.M.').replace(' BAIXA DENSIDADE',' B.D.').replace('GRÃO DE APARA COLORIDO','Grão Apara');
+
+new Chart(document.getElementById('chartC1C2'),{
+  type:'bar',
+  data:{
+    labels:mpsSort.map(shortLbl),
+    datasets:[
+      {label:`C1 · ${C1_DIA.toLocaleString('pt-BR')} kg/dia`,data:mpsSort.map(m=>c1Map[m]||0),backgroundColor:'rgba(59,130,246,0.75)',borderRadius:4},
+      {label:`C2 · ${C2_DIA.toLocaleString('pt-BR')} kg/dia`,data:mpsSort.map(m=>c2Map[m]||0),backgroundColor:'rgba(16,185,129,0.75)',borderRadius:4},
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    scales:{
+      x:{ticks:{color:'#64748b',font:{size:9}},grid:{color:'#1e2433'}},
+      y:{ticks:{color:'#64748b',font:{family:'Space Mono',size:9}},grid:{color:'#1e2433'}}
+    },
+    plugins:{legend:{labels:{color:'#94a3b8',font:{size:10},boxWidth:10}}}
+  }
+});
+
+// ── CHART PCT ──
+const pctData = painel.filter(d=>d.pct>0 && d.mp!=='AGLUTINADO').sort((a,b)=>b.pct-a.pct);
+new Chart(document.getElementById('chartPct'),{
+  type:'doughnut',
+  data:{
+    labels:pctData.map(d=>shortLbl(d.mp)),
+    datasets:[{
+      data:pctData.map(d=>d.pct),
+      backgroundColor:['#3b82f6','#8b5cf6','#ef4444','#10b981','#f59e0b','#6366f1','#ec4899','#14b8a6'],
+      borderColor:'#111520',borderWidth:3,hoverOffset:8
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,cutout:'58%',
+    plugins:{
+      legend:{position:'right',labels:{color:'#94a3b8',font:{size:10},boxWidth:10,padding:10}},
+      tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw}%`}}
+    }
+  }
+});
+
+// ── TERMÔMETRO ──
+const termData = painel.filter(d=>d.mp!=='AGLUTINADO').sort((a,b)=>a.giro-b.giro);
+const termColors = termData.map(d=>d.giro<=3?'rgba(239,68,68,0.85)':d.giro<=7?'rgba(245,158,11,0.85)':'rgba(16,185,129,0.85)');
+
+new Chart(document.getElementById('chartTermometro'),{
+  type:'bar',
+  data:{
+    labels:termData.map(d=>shortLbl(d.mp)),
+    datasets:[
+      {label:'Dias cobertos (de 30)',data:termData.map(d=>Math.min(d.giro/HORIZONTE*100,100)),backgroundColor:termColors,borderRadius:5},
+      {label:'Dias descobertos (de 30)',data:termData.map(d=>Math.max(0,100-Math.min(d.giro/HORIZONTE*100,100))),backgroundColor:'rgba(30,36,51,0.8)',borderRadius:5},
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    indexAxis:'y',
+    scales:{
+      x:{
+        stacked:true,max:100,
+        ticks:{color:'#64748b',font:{family:'Space Mono',size:9},callback:v=>`${Math.round(v*HORIZONTE/100)}d`},
+        grid:{color:'#1e2433'},
+        title:{display:true,text:'Horizonte de 30 dias',color:'#64748b',font:{size:10}}
+      },
+      y:{stacked:true,ticks:{color:'#e2e8f0',font:{size:11}},grid:{display:false}}
+    },
+    plugins:{
+      legend:{labels:{color:'#94a3b8',font:{size:10},boxWidth:10}},
+      tooltip:{callbacks:{label:ctx=>{
+        const d=termData[ctx.dataIndex];
+        if(ctx.datasetIndex===0){
+          if(d.giro===0) return ' Estoque ZERADO — ruptura imediata';
+          return ` ${d.giro} dias de estoque · ${d.est.toLocaleString('pt-BR')} kg · ${d.cons.toLocaleString('pt-BR')} kg/dia`;
+        }
+        return ` ${HORIZONTE-d.giro} dias descobertos no horizonte`;
+      }}}
+    }
+  }
+});
+</script>
+</body>
+</html>
